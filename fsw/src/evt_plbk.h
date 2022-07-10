@@ -1,28 +1,30 @@
-/* 
-** Purpose: Telemeter (playback) the contents of the current cFE event
-**          message log.
+/*
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   1. Initially motivated by a scenario where ground tools for dumping
-**      and displaying the event log were not available. 
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Telemeter (playback) the contents of the current cFE event
+**    message log.
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. Initially motivated by a scenario where ground tools for dumping
+**       and displaying the event log were not available. 
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide
+**    2. cFS Application Developer's Guide
+**
 */
-
 #ifndef _evt_plbk_
 #define _evt_plbk_
 
@@ -68,20 +70,21 @@
 typedef struct
 {
 
-   uint8   Header[CFE_SB_CMD_HDR_SIZE];
+   CFE_MSG_CommandHeader_t  CmdHeader;
+
    char    EvsLogFilename[CFE_MISSION_MAX_PATH_LEN];   /* Filename to use when command write EVS log file */
    uint16  HkCyclesPerPkt;                             /* Number of HK request cycles between event log telemetry packets */
    
 } EVT_PLBK_ConfigCmdMsg_t;
-#define EVT_PLBK_CONFIG_CMD_DATA_LEN  ((sizeof(EVT_PLBK_ConfigCmdMsg_t) - CFE_SB_CMD_HDR_SIZE))
+#define EVT_PLBK_CONFIG_CMD_DATA_LEN  (sizeof(EVT_PLBK_ConfigCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 typedef struct
 {
 
-   uint8   CmdHeader[CFE_SB_CMD_HDR_SIZE];
+   CFE_MSG_CommandHeader_t  CmdHeader;
 
 } EVT_PLBK_NoParamCmdMsg_t;
-#define EVT_PLBK_NO_PARAM_CMD_DATA_LEN  ((sizeof(EVT_PLBK_NoParamCmdMsg_t) - CFE_SB_CMD_HDR_SIZE))
+#define EVT_PLBK_NO_PARAM_CMD_DATA_LEN  (sizeof(EVT_PLBK_NoParamCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 #define EVT_PLBK_START_CMD_DATA_LEN (EVT_PLBK_NO_PARAM_CMD_DATA_LEN)
 #define EVT_PLBK_STOP_CMD_DATA_LEN  (EVT_PLBK_NO_PARAM_CMD_DATA_LEN)
 
@@ -106,7 +109,7 @@ typedef struct
 typedef struct
 {
 
-   uint8   Header[CFE_SB_TLM_HDR_SIZE];
+   CFE_MSG_TelemetryHeader_t TlmHeader;
 
    char    EvsLogFilename[CFE_MISSION_MAX_PATH_LEN];
    uint16  EventCnt;
@@ -114,7 +117,7 @@ typedef struct
    
    EVT_PLBK_TlmEvent_t Event[EVT_PLBK_EVENTS_PER_TLM_MSG];
 
-} OS_PACK EVT_PLBK_TlmMsg_t;
+} EVT_PLBK_TlmMsg_t;
 
 #define EVT_PLBK_TLM_MSG_LEN sizeof (EVT_PLBK_TlmMsg_t)
 
@@ -131,7 +134,7 @@ typedef struct
 typedef struct
 {
 
-   boolean Loaded;
+   bool Loaded;
    EVT_PLBK_TlmEvent_t Tlm;
 
 } EVT_PLBK_EventLogMsg_t;
@@ -158,8 +161,8 @@ typedef struct
    ** Event Playback Data
    */
 
-   boolean  Enabled;
-   boolean  LogFileCopied;
+   bool     Enabled;
+   bool     LogFileCopied;
    uint16   EvsLogFileOpenAttempts;  /* Number of execution cycle attempts to open log file after write log commanded */  
    
    uint16   HkCyclePeriod;       /* Number of HK request cycles between event log telemetry packets */
@@ -188,7 +191,7 @@ typedef struct
 **   2. Disabled by default.
 **
 */
-void EVT_PLBK_Constructor(EVT_PLBK_Class_t* EvtPbPtr, INITBL_Class_t* IniTbl);
+void EVT_PLBK_Constructor(EVT_PLBK_Class_t *EvtPbPtr, INITBL_Class_t *IniTbl);
 
 
 /******************************************************************************
@@ -229,7 +232,7 @@ void EVT_PLBK_Execute(void);
 ** for details.
 **
 */
-boolean EVT_PLBK_ConfigCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool EVT_PLBK_ConfigCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -239,7 +242,7 @@ boolean EVT_PLBK_ConfigCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** the messages.
 **
 */
-boolean EVT_PLBK_StartCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool EVT_PLBK_StartCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -248,7 +251,7 @@ boolean EVT_PLBK_StartCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Stop a playback if one is in progress.
 **
 */
-boolean EVT_PLBK_StopCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool EVT_PLBK_StopCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _evt_plbk_ */

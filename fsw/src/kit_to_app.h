@@ -1,27 +1,30 @@
 /*
-** Purpose: Define the OpenSatKit Telemetry Output application. This app
-**          receives telemetry packets from the software bus and uses its
-**          packet table to determine whether packets should be sent over
-**          a UDP socket.
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   None
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**     Define the OpenSatKit Telemetry Output application. This app
+**     receives telemetry packets from the software bus and uses its
+**     packet table to determine whether packets should be sent over
+**     a UDP socket.
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    None
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 #ifndef _kit_to_app_
 #define _kit_to_app_
@@ -68,22 +71,22 @@
 typedef struct
 {
 
-   uint8    Header[CFE_SB_CMD_HDR_SIZE];
+   CFE_MSG_CommandHeader_t  CmdHeader;
    uint16   RunLoopDelay;
 
-}  KIT_TO_SetRunLoopDelayCmdMsg_t;
-#define KIT_TO_SET_RUN_LOOP_DELAY_CMD_DATA_LEN  (sizeof(KIT_TO_SetRunLoopDelayCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} KIT_TO_SetRunLoopDelayCmdMsg_t;
+#define KIT_TO_SET_RUN_LOOP_DELAY_CMD_DATA_LEN  (sizeof(KIT_TO_SetRunLoopDelayCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 typedef struct
 {
 
-   uint8    Header[CFE_SB_CMD_HDR_SIZE];
-   uint16                 FilterType;
-   PktUtil_FilterParam_t  FilterParam;
+   CFE_MSG_CommandHeader_t  CmdHeader;
+   uint16                   FilterType;
+   PktUtil_FilterParam_t    FilterParam;
 
 }  KIT_TO_TestFilterCmdMsg_t;
-#define KIT_TO_TEST_FILTER_CMD_DATA_LEN  (sizeof(KIT_TO_TestFilterCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+#define KIT_TO_TEST_FILTER_CMD_DATA_LEN  (sizeof(KIT_TO_TestFilterCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 /******************************************************************************
@@ -92,7 +95,7 @@ typedef struct
 typedef struct
 {
 
-   uint8    Header[CFE_SB_TLM_HDR_SIZE];
+   CFE_MSG_TelemetryHeader_t TlmHeader;
 
    /*
    ** CMDMGR Data
@@ -129,7 +132,7 @@ typedef struct
    uint8    EvtPlbkEna;
    uint8    EvtPlbkHkPeriod;
    
-} OS_PACK KIT_TO_HkPkt_t;
+} KIT_TO_HkPkt_t;
 #define KIT_TO_TLM_HK_LEN sizeof (KIT_TO_HkPkt_t)
 
 
@@ -137,7 +140,7 @@ typedef struct
 typedef struct
 {
 
-   uint8              Header[CFE_SB_TLM_HDR_SIZE];
+   CFE_MSG_TelemetryHeader_t TlmHeader;
    uint16             synch;
 #if 0
    bit_field          bit1:1;
@@ -157,7 +160,7 @@ typedef struct
    double             df1, df2;
    char               str[10];
 
-} OS_PACK KIT_TO_DataTypePkt_t;
+} KIT_TO_DataTypePkt_t;
 #define KIT_TO_TLM_DATA_TYPE_LEN   sizeof (KIT_TO_DataTypePkt_t)
 
 
@@ -188,8 +191,8 @@ typedef struct
    ** KIT_CI State & Contained Objects
    */
    
-   uint32  CmdMidValue;
-   uint32  SendHkMidValue;
+   CFE_SB_MsgId_t  CmdMid;
+   CFE_SB_MsgId_t  SendHkMid;
    
    uint16  RunLoopDelay;
    uint16  RunLoopDelayMin;
@@ -228,7 +231,7 @@ void KIT_TO_AppMain(void);
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-boolean KIT_TO_NoOpCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool KIT_TO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -238,7 +241,7 @@ boolean KIT_TO_NoOpCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-boolean KIT_TO_ResetAppCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool KIT_TO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -248,13 +251,13 @@ boolean KIT_TO_ResetAppCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-boolean KIT_TO_SetRunLoopDelayCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool KIT_TO_SetRunLoopDelayCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: KIT_TO_TestFilterCmd
 **
 */
-boolean KIT_TO_TestFilterCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool KIT_TO_TestFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 #endif /* _kit_to_app_ */

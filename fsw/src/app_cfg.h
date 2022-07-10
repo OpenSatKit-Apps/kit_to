@@ -1,29 +1,31 @@
 /*
-** Purpose: Define configurations for the OpenSatKit Telemetry Output app. 
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   1. These configurations should have an application scope and define
-**      parameters that shouldn't need to change across deployments. If
-**      a change is made to this file or any other app source file during
-**      a deployment then the definition of the KIT_TO_PLATFORM_REV
-**      macro in kit_to_demo_platform_cfg.h should be updated.
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide and the
-**      osk_c_demo app that illustrates best practices with comments.  
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define configurations for the OpenSatKit Scheduler application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. These configurations should have an application scope and define
+**       parameters that shouldn't need to change across deployments. If
+**       a change is made to this file or any other app source file during
+**       a deployment then the definition of the KIT_SCH_PLATFORM_REV
+**       macro in kit_sch_platform_cfg.h should be updated.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _app_cfg_
@@ -70,9 +72,9 @@
 #define CFG_APP_RUN_LOOP_DELAY_MIN APP_RUN_LOOP_DELAY_MIN   /* Minimum command value to set delay  */
 #define CFG_APP_RUN_LOOP_DELAY_MAX APP_RUN_LOOP_DELAY_MAX   /* Maximum command value to set delay  */
 
-#define CFG_APP_CMD_MID            APP_CMD_MID
-#define CFG_APP_SEND_HK_MID        APP_SEND_HK_MID
-#define CFG_APP_HK_TLM_MID         APP_HK_TLM_MID
+#define CFG_KIT_TO_CMD_TOPICID     KIT_TO_CMD_TOPICID
+#define CFG_KIT_TO_SEND_HK_TOPICID KIT_TO_SEND_HK_TOPICID
+#define CFG_KIT_TO_HK_TLM_TOPICID  KIT_TO_HK_TLM_TOPICID
 #define CFG_APP_DATA_TYPE_TLM_MID  APP_DATA_TYPE_TLM_MID
 #define CFG_PKTMGR_TLM_MID         PKTMGR_TLM_MID
 #define CFG_EVT_PLBK_TLM_MID       EVT_PLBK_TLM_MID
@@ -90,8 +92,8 @@
 #define CFG_EVT_PLBK_HK_PERIOD  EVT_PLBK_HK_PERIOD  /* Number of HK request cycles between event tlm messages */
 #define CFG_EVT_PLBK_LOG_FILE   EVT_PLBK_LOG_FILE 
 
-#define CFG_EVT_PLBK_EVS_CMD_MID       EVT_PLBK_EVS_CMD_MID       /* cFE EVS command message ID */
-#define CFG_EVT_PLBK_EVS_WRITE_LOG_FC  EVT_PLBK_EVS_WRITE_LOG_FC  /* cFE EVS 'Write Log to File' command function code */ 
+#define CFG_EVS_CMD_TOPICID                 EVS_CMD_TOPICID                  /* Name must be identical to the EDS name */
+#define CFG_CFE_EVS_WRITE_LOG_DATA_FILE_CC  CFE_EVS_WRITE_LOG_DATA_FILE_CC   /* Name must be identical to the EDS name */ 
 
 
 #define APP_CONFIG(XX) \
@@ -102,9 +104,9 @@
    XX(APP_RUN_LOOP_DELAY,uint32) \
    XX(APP_RUN_LOOP_DELAY_MIN,uint32) \
    XX(APP_RUN_LOOP_DELAY_MAX,uint32) \
-   XX(APP_CMD_MID,uint32) \
-   XX(APP_SEND_HK_MID,uint32) \
-   XX(APP_HK_TLM_MID,uint32) \
+   XX(KIT_TO_CMD_TOPICID,uint32) \
+   XX(KIT_TO_SEND_HK_TOPICID,uint32) \
+   XX(KIT_TO_HK_TLM_TOPICID,uint32) \
    XX(APP_DATA_TYPE_TLM_MID,uint32) \
    XX(PKTMGR_TLM_MID,uint32) \
    XX(EVT_PLBK_TLM_MID,uint32) \
@@ -117,8 +119,8 @@
    XX(PKTTBL_DUMP_FILE,char*) \
    XX(EVT_PLBK_HK_PERIOD,uint32) \
    XX(EVT_PLBK_LOG_FILE,char*) \
-   XX(EVT_PLBK_EVS_CMD_MID,uint32) \
-   XX(EVT_PLBK_EVS_WRITE_LOG_FC,uint32) \
+   XX(EVS_CMD_TOPICID,uint32) \
+   XX(CFE_EVS_WRITE_LOG_DATA_FILE_CC,uint32) \
 
 DECLARE_ENUM(Config,APP_CONFIG)
 
@@ -127,23 +129,20 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** Command Macros
 */
 
-#define KIT_TO_PKT_TBL_LOAD_CMD_FC       (CMDMGR_APP_START_FC +  0)
-#define KIT_TO_PKT_TBL_DUMP_CMD_FC       (CMDMGR_APP_START_FC +  1)
+#define KIT_TO_ADD_PKT_CMD_FC            (CMDMGR_APP_START_FC +  0)
+#define KIT_TO_ENABLE_OUTPUT_CMD_FC      (CMDMGR_APP_START_FC +  1)
+#define KIT_TO_REMOVE_ALL_PKTS_CMD_FC    (CMDMGR_APP_START_FC +  2)
+#define KIT_TO_REMOVE_PKT_CMD_FC         (CMDMGR_APP_START_FC +  3)
+#define KIT_TO_SEND_PKT_TBL_TLM_CMD_FC   (CMDMGR_APP_START_FC +  4)
+#define KIT_TO_UPDATE_FILTER_CMD_FC      (CMDMGR_APP_START_FC +  5)
 
-#define KIT_TO_ADD_PKT_CMD_FC            (CMDMGR_APP_START_FC +  2)
-#define KIT_TO_ENABLE_OUTPUT_CMD_FC      (CMDMGR_APP_START_FC +  3)
-#define KIT_TO_REMOVE_ALL_PKTS_CMD_FC    (CMDMGR_APP_START_FC +  4)
-#define KIT_TO_REMOVE_PKT_CMD_FC         (CMDMGR_APP_START_FC +  5)
-#define KIT_TO_SEND_PKT_TBL_TLM_CMD_FC   (CMDMGR_APP_START_FC +  6)
-#define KIT_TO_UPDATE_FILTER_CMD_FC      (CMDMGR_APP_START_FC +  7)
+#define KIT_TO_SEND_DATA_TYPES_CMD_FC    (CMDMGR_APP_START_FC +  6)
+#define KIT_TO_SET_RUN_LOOP_DELAY_CMD_FC (CMDMGR_APP_START_FC +  7)
+#define KIT_TO_TEST_FILTER_CMD_FC        (CMDMGR_APP_START_FC +  8)
 
-#define KIT_TO_SEND_DATA_TYPES_CMD_FC    (CMDMGR_APP_START_FC +  8)
-#define KIT_TO_SET_RUN_LOOP_DELAY_CMD_FC (CMDMGR_APP_START_FC +  9)
-#define KIT_TO_TEST_FILTER_CMD_FC        (CMDMGR_APP_START_FC + 10)
-
-#define KIT_TO_EVT_PLBK_CONFIG_CMD_FC    (CMDMGR_APP_START_FC + 11)
-#define KIT_TO_EVT_PLBK_START_CMD_FC     (CMDMGR_APP_START_FC + 12)
-#define KIT_TO_EVT_PLBK_STOP_CMD_FC      (CMDMGR_APP_START_FC + 13)
+#define KIT_TO_EVT_PLBK_CONFIG_CMD_FC    (CMDMGR_APP_START_FC +  9)
+#define KIT_TO_EVT_PLBK_START_CMD_FC     (CMDMGR_APP_START_FC + 10)
+#define KIT_TO_EVT_PLBK_STOP_CMD_FC      (CMDMGR_APP_START_FC + 11)
 
 
 /******************************************************************************
@@ -167,8 +166,8 @@ DECLARE_ENUM(Config,APP_CONFIG)
 */
 
 #define KIT_TO_INIT_DEBUG_EID 999
-#define KIT_TO_INIT_EVS_TYPE CFE_EVS_DEBUG
-//#define KIT_TO_INIT_EVS_TYPE CFE_EVS_INFORMATION
+#define KIT_TO_INIT_EVS_TYPE CFE_EVS_EventType_DEBUG
+//#define KIT_TO_INIT_EVS_TYPE CFE_EVS_EventType_INFORMATION
 
 
 /******************************************************************************

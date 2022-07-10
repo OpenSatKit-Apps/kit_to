@@ -1,30 +1,37 @@
-/* 
-** Purpose: Manage the Packet Table that defines which packets will be sent
-**          from the software bus to a socket.
+/*
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   1. This has some of the features of a flight app such as packet filtering
-**      but it would need design/code reviews to transition it to a flight
-**      mission. For starters it uses UDP sockets and it doesn't regulate
-**      output bit rates. 
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Manage the Packet Table that defines which packets will be sent
+**    from the software bus to a socket.
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. This has some of the features of a flight app such as packet filtering
+**       but it would need design/code reviews to transition it to a flight
+**       mission. For starters it uses UDP sockets and it doesn't regulate
+**       output bit rates.  
+**    2. The term packet is used in a generic sense to refer to a telemetry 
+**       packet. A packet has a message ID that corresponds to a cFE message
+**       ID. KIT_TO stores its message ID as an integer and the cFE provides
+**       conversion functions that translate from a 'value' to the cFE's SB
+**       message ID repreentation.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide
+**    2. cFS Application Developer's Guide
+**
 */
-
 #ifndef _pktmgr_
 #define _pktmgr_
 
@@ -78,57 +85,57 @@
 typedef struct
 {
 
-   uint8   Header[CFE_SB_CMD_HDR_SIZE];
+   CFE_MSG_CommandHeader_t  CmdHeader;
    char    DestIp[PKTMGR_IP_STR_LEN];
 
 } PKTMGR_EnableOutputCmdMsg_t;
-#define PKKTMGR_ENABLE_OUTPUT_CMD_DATA_LEN  (sizeof(PKTMGR_EnableOutputCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+#define PKKTMGR_ENABLE_OUTPUT_CMD_DATA_LEN  (sizeof(PKTMGR_EnableOutputCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 typedef struct
 {
 
-   uint8                  Header[CFE_SB_CMD_HDR_SIZE];
-   CFE_SB_MsgId_t         StreamId;
-   CFE_SB_Qos_t           Qos;
-   uint8                  BufLim;
+   CFE_MSG_CommandHeader_t CmdHeader;
+   uint16                  MsgId;
+   CFE_SB_Qos_t            Qos;
+   uint8                   BufLim;
    uint16                  FilterType;
-   PktUtil_FilterParam_t  FilterParam;
+   PktUtil_FilterParam_t   FilterParam;
 
-}  OS_PACK PKTMGR_AddPktCmdMsg_t;
-#define PKKTMGR_ADD_PKT_CMD_DATA_LEN  (sizeof(PKTMGR_AddPktCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
-
-
-typedef struct
-{
-
-   uint8              Header[CFE_SB_CMD_HDR_SIZE];
-   CFE_SB_MsgId_t     StreamId;
-
-}  PKTMGR_RemovePktCmdMsg_t;
-#define PKKTMGR_REMOVE_PKT_CMD_DATA_LEN  (sizeof(PKTMGR_RemovePktCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} PKTMGR_AddPktCmdMsg_t;
+#define PKKTMGR_ADD_PKT_CMD_DATA_LEN  (sizeof(PKTMGR_AddPktCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 typedef struct
 {
 
-   uint8              Header[CFE_SB_CMD_HDR_SIZE];
-   CFE_SB_MsgId_t     StreamId;
+   CFE_MSG_CommandHeader_t  CmdHeader;
+   uint16                   MsgId;
 
-}  PKTMGR_SendPktTblTlmCmdMsg_t;
-#define PKKTMGR_SEND_PKT_TBL_TLM_CMD_DATA_LEN  (sizeof(PKTMGR_SendPktTblTlmCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} PKTMGR_RemovePktCmdMsg_t;
+#define PKKTMGR_REMOVE_PKT_CMD_DATA_LEN  (sizeof(PKTMGR_RemovePktCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 typedef struct
 {
 
-   uint8                  Header[CFE_SB_CMD_HDR_SIZE];
-   CFE_SB_MsgId_t         StreamId;
-   uint16                 FilterType;
-   PktUtil_FilterParam_t  FilterParam;
+   CFE_MSG_CommandHeader_t  CmdHeader;
+   uint16                   MsgId;
 
-}  OS_PACK PKTMGR_UpdateFilterCmdMsg_t;
-#define PKKTMGR_UPDATE_FILTER_CMD_DATA_LEN  (sizeof(PKTMGR_UpdateFilterCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} PKTMGR_SendPktTblTlmCmdMsg_t;
+#define PKKTMGR_SEND_PKT_TBL_TLM_CMD_DATA_LEN  (sizeof(PKTMGR_SendPktTblTlmCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
+
+
+typedef struct
+{
+
+   CFE_MSG_CommandHeader_t CmdHeader;
+   uint16                  MsgId;
+   uint16                  FilterType;
+   PktUtil_FilterParam_t   FilterParam;
+
+} PKTMGR_UpdateFilterCmdMsg_t;
+#define PKKTMGR_UPDATE_FILTER_CMD_DATA_LEN  (sizeof(PKTMGR_UpdateFilterCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 /******************************************************************************
@@ -138,16 +145,16 @@ typedef struct
 typedef struct
 {
 
-   uint8    Header[CFE_SB_TLM_HDR_SIZE];
-
-   CFE_SB_MsgId_t  StreamId;
-   CFE_SB_Qos_t    Qos;
-   uint16          BufLim;
+   CFE_MSG_TelemetryHeader_t TlmHeader;
+   
+   uint16        MsgId;
+   CFE_SB_Qos_t  Qos;
+   uint16        BufLim;
 
    uint16                 FilterType;
    PktUtil_FilterParam_t  FilterParam;
 
-} OS_PACK PKTMGR_PktTlm_t;
+} PKTMGR_PktTlm_t;
 
 #define PKTMGR_PKT_TLM_LEN sizeof (PKTMGR_PktTlm_t)
 
@@ -198,7 +205,7 @@ typedef struct
    ** Framework Object References
    */
 
-   INITBL_Class_t* IniTbl;
+   INITBL_Class_t *IniTbl;
    
    /*
    ** Telemetry Packets
@@ -212,11 +219,11 @@ typedef struct
 
    CFE_SB_PipeId_t   TlmPipe;
    uint32            TlmUdpPort;
-   int               TlmSockId;
+   osal_id_t         TlmSockId;
    char              TlmDestIp[PKTMGR_IP_STR_LEN];
 
-   boolean           DownlinkOn;
-   boolean           SuppressSend;
+   bool              DownlinkOn;
+   bool              SuppressSend;
    PKTMGR_Stats_t    Stats;
 
    /*
@@ -243,7 +250,31 @@ typedef struct
 **      management during startup.
 **
 */
-void PKTMGR_Constructor(PKTMGR_Class_t *PktMgrPtr, INITBL_Class_t* IniTbl);
+void PKTMGR_Constructor(PKTMGR_Class_t *PktMgrPtr, INITBL_Class_t *IniTbl);
+
+
+/******************************************************************************
+** Function: PKTMGR_AddPktCmd
+**
+** Add a packet to the table and subscribe for it on the SB.
+**
+** Notes:
+**   1. Command rejected if table has existing entry for the commanded msg ID
+**   2. Only update the table if the software bus subscription successful
+** 
+*/
+bool PKTMGR_AddPktCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: PKTMGR_EnableOutputCmd
+**
+** The commanded IP is always saved and downlink suppression is turned off. If
+** downlink is disabled then a new socket is created with the new IP and
+** downlink is turned on.
+**
+*/
+bool PKTMGR_EnableOutputCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -254,6 +285,16 @@ void PKTMGR_Constructor(PKTMGR_Class_t *PktMgrPtr, INITBL_Class_t* IniTbl);
 ** InitDelay         - Number of ms to delay starting stats computation
 */
 void PKTMGR_InitStats(uint16 OutputTlmInterval, uint16 InitDelay);
+
+
+/******************************************************************************
+** Function: PKTMGR_OutputTelemetry
+**
+** If downlink is enabled and output hasn't been suppressed it sends all of the
+** SB packets on the telemetry input pipe out the socket.
+**
+*/
+uint16 PKTMGR_OutputTelemetry(void);
 
 
 /******************************************************************************
@@ -270,40 +311,6 @@ void PKTMGR_ResetStatus(void);
 
 
 /******************************************************************************
-** Function: PKTMGR_OutputTelemetry
-**
-** If downlink is enabled and output hasn't been suppressed it sends all of the
-** SB packets on the telemetry input pipe out the socket.
-**
-*/
-uint16 PKTMGR_OutputTelemetry(void);
-
-
-/******************************************************************************
-** Function: PKTMGR_EnableOutputCmd
-**
-** The commanded IP is always saved and downlink suppression is turned off. If
-** downlink is disabled then a new socket is created with the new IP and
-** downlink is turned on.
-**
-*/
-boolean PKTMGR_EnableOutputCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
-
-
-/******************************************************************************
-** Function: PKTMGR_AddPktCmd
-**
-** Add a packet to the table and subscribe for it on the SB.
-**
-** Notes:
-**   1. Command rejected if table has existing entry for thecommanded Stream ID
-**   2. Only update the table if the software bus subscription successful
-** 
-*/
-boolean PKTMGR_AddPktCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
-
-
-/******************************************************************************
 ** Function: PKTMGR_RemoveAllPktsCmd
 **
 ** Notes:
@@ -311,7 +318,7 @@ boolean PKTMGR_AddPktCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 **      sure why this is done and I'm not sure how the command is used. This 
 **      command is intended to help manage TO telemetry packets.
 */
-boolean PKTMGR_RemoveAllPktsCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool PKTMGR_RemoveAllPktsCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -322,17 +329,17 @@ boolean PKTMGR_RemoveAllPktsCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Notes:
 **   1. Don't consider trying to remove an non-existent entry an error
 */
-boolean PKTMGR_RemovePktCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool PKTMGR_RemovePktCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: PKTMGR_SendPktTblTlmCmd
 **
 ** Send a telemetry packet containg the packet table entry for the commanded
-** Stream ID.
+** msg ID.
 **
 */
-boolean PKTMGR_SendPktTblTlmCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool PKTMGR_SendPktTblTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -343,7 +350,7 @@ boolean PKTMGR_SendPktTblTlmCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 **   2. The filter type is verified but the filter parameter values are not 
 ** 
 */
-boolean PKTMGR_UpdateFilterCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool PKTMGR_UpdateFilterCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _pktmgr_ */
