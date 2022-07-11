@@ -439,7 +439,7 @@ static void InitDataTypePkt(void)
    char   StringVariable[10] = "ABCDEFGHIJ";
    KIT_TO_DataTypePkt_t *DataTypePkt = &KitTo.DataTypePkt;
 
-   CFE_MSG_Init(CFE_MSG_PTR(KitTo.DataTypePkt), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_DATA_TYPE_TLM_MID)),
+   CFE_MSG_Init(CFE_MSG_PTR(KitTo.DataTypePkt), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_KIT_TO_DATA_TYPES_TOPICID)),
                 KIT_TO_TLM_DATA_TYPE_LEN);
 
    DataTypePkt->synch = 0x6969;

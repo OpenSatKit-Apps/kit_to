@@ -96,7 +96,7 @@ void PKTMGR_Constructor(PKTMGR_Class_t *PktMgrPtr, INITBL_Class_t *IniTbl)
                      INITBL_GetStrConfig(IniTbl, CFG_PKTMGR_PIPE_NAME));
       
    CFE_MSG_Init(CFE_MSG_PTR(PktMgr->PktTlm), 
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(IniTbl, CFG_PKTMGR_TLM_MID)), 
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(IniTbl, CFG_KIT_TO_PKT_TBL_TLM_TOPICID)), 
                 PKTMGR_PKT_TLM_LEN);
    
    OS_TaskInstallDeleteHandler(&DestructorCallback); /* Called when application terminates */
